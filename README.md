@@ -1,2 +1,9 @@
 # coexistence-microbes
-Systematic review of empirical coexistence theory studies in microbial systems
+
+This repository contains the code and data used and produced by the systematic review accompanying the manuscript *"Coexistence theory for microbial ecology, and vice versa"* by James A. Orr, David W. Armitage, and Andrew D. Letten. 
+
+**1. abstract screening** contains a folder called "input" with the initial *Web of Science* search results (the three `savedrecs.xls` files) and an R notebook (`WoS-organising.Rmd`) to arrange these data into a dataframe (`abstract_screening_input.csv`) that is compatible with the abstract screening software we used (ASReview - https://asreview.nl). It also contains a folder called "output" with the results of the abstract screening (`asreview_dataset_all_coexistence-microbes.xlsx`), the data describing the efficiency of the screening (`ASReviewLABprogressRecall.csv`), and the actual ASReview project file (`coexistence-microbes.asreview`) containing all decisions made by the human screener (JO) for total transparency and reproducibility. Finally there is a spreadsheet (`pubs_missing_abstracts.csv`) that contains the screening results (included: yes or no) for the publications that were manually screened as they did not have abstracts so could not be screened using ASReview.
+
+**2. full text screening** contains a folder called "data prep" with the results of the abstract screening (`asreview_outputs.xlsx`), the studies collected by previous reviews (`from-previous-reviews.xlsx`), and an R notebook (`record-organising.Rmd`) that merges these data, removes duplicates, and prepares a file ready for full text screening. It also contains a spreadsheet with the results of full text screening (`full_text_screening.xlsx`) that has a metadata sheet included. 
+
+**3. dataset** contains the final dataset produced by our systematic review (`empirical-coexistence-microbes.xlsx`) that has a metadata sheet included. Each row contains information about one of the 12 relevant studies identified by our review.
