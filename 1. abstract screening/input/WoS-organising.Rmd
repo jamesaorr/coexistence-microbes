@@ -1,0 +1,87 @@
+---
+title: "Organising WoS search results"
+author: "James Orr"
+output:
+   html_notebook:
+     code_folding: hide
+     theme: flatly
+     toc: true
+     toc_depth: 4
+     number_sections: no
+---
+
+### Introduction
+
+Web of Science only allows export of 1000 records at a time. Here I am compiling many of these 1000 groups of records together so they can be organised easily. 
+
+```{r, echo=TRUE, results='hide'}
+#### Clear  environment 
+rm(list = ls())         
+
+#### Required packages
+library(tidyverse)        # for general use
+library(readxl)           # to read xls files
+library(data.table)       # to split into many csv files
+
+```
+
+
+### Load all xls files into one R object
+
+```{r}
+# Get a list of all .xls files in the folder
+file_list <- list.files(pattern = "*.xls", full.names = TRUE)
+
+# Read all .xls files into a single data frame
+WoS_results <- map_df(file_list, ~ read_excel(.x, col_types = "text"))
+
+rm(file_list)
+```
+
+
+### Must be in English 
+
+```{r}
+#WoS_results_NE <- WoS_results %>%
+#  filter(Language != "English")
+```
+
+Don't need to do anything - records that were labelled as not being in English did have English abstracts in WoS so can be included in the ASReview process
+
+### Select relevant variables 
+
+```{r}
+WoS_results <- WoS_results %>%
+   select(c("Authors",
+            "Article Title",
+            "Source Title",
+            "Abstract",
+            "Publication Year",
+            "Early Access Date",
+            "DOI",
+            "UT (Unique WOS ID)")) %>%
+   arrange(desc(`Publication Year`))
+
+WoS_results <- rename(WoS_results, Title = `Article Title`)
+```
+
+### Separate out the papers with missing abstracts
+
+```{r}
+missing_abstract <- WoS_results %>%
+  filter(is.na(Abstract))
+
+abstract_screening_input <- WoS_results %>%
+  filter(!is.na(Abstract))
+```
+
+
+### Save full sheet
+
+```{r}
+write.csv(abstract_screening_input, "abstract_screening_input.csv", row.names=F)
+write.csv(missing_abstract, "missing_abstract.csv", row.names=F)
+
+```
+
+

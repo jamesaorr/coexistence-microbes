@@ -1,0 +1,85 @@
+---
+title: "Organising records for full text screening"
+author: "James Orr"
+output:
+   html_notebook:
+     code_folding: hide
+     theme: flatly
+     toc: true
+     toc_depth: 4
+     number_sections: no
+---
+
+*Introduction*
+
+Here I'll combine the records collected from previous reviews with the papers found during ASReview to create a dataset that I can then use for full text screening and data extraction.
+
+```{r, echo=TRUE, results='hide'}
+#### Clear  environment 
+rm(list = ls())         
+
+#### Required packages
+library(tidyverse)        # for general use
+library(readxl)           # to read xls files
+
+```
+
+*Load xlsx files*
+
+```{r}
+previous <- read_excel("from-previous-reviews.xlsx")
+asreview_results <- read_excel("asreview_outputs.xlsx")
+```
+
+*Organise data*
+
+```{r}
+asreview_results <- asreview_results %>%
+  filter(included == "1") %>%
+  select(c(Authors, Title, `Source Title`, Abstract, `Publication Year`,
+           DOI, `UT (Unique WOS ID)`))
+
+previous <- previous %>%
+  rename(Title = `Article Title`) %>%
+  mutate(`UT (Unique WOS ID)` = NA)
+
+previous_yes <- filter(previous, Included == "yes") 
+previous_no <- filter(previous, Included == "no") 
+
+previous_yes <- previous_yes %>%
+  select(-c(Authors, Title, `Source Title`, Abstract, `Publication Year`,
+            `UT (Unique WOS ID)`))
+```
+
+*Merge data*
+
+All of the previous records that had "Included" = "yes" were in the asreview list, so that makes joining a bit easier 
+
+```{r}
+full_text_screening <- left_join(asreview_results, previous_yes, by = "DOI")
+full_text_screening <- full_text_screening %>%
+  mutate(asreview = 1,
+         previous = if_else(Included == "yes", 1, 0))
+full_text_screening$previous[is.na(full_text_screening$previous)] <- 0
+
+previous_no$asreview = 0
+previous_no$previous = 1
+
+full_text_screening <- bind_rows(full_text_screening, previous_no)
+```
+
+*Confirm there are no duplicates*
+
+```{r}
+length(unique(full_text_screening$DOI))
+```
+
+*Reorder and save*
+
+```{r}
+full_text_screening <- full_text_screening %>%
+  arrange(desc(previous), desc(asreview), desc(`Publication Year`))
+
+#write.csv(full_text_screening, "full_text_screening.csv", row.names = F)
+```
+
